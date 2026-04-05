@@ -1,3 +1,4 @@
+#Imports and Page Config
 
 import streamlit as st
 import json
@@ -10,7 +11,7 @@ st.set_page_config(
 
 st.title("Broke But Up")
 
-
+#JSON files and helper functions
 # CHANGED: Added separate JSON files for users, listings, and orders
 
 users_file = Path("users.json")
@@ -36,6 +37,8 @@ def save_data(file_path, data):
 users = load_data(users_file)
 listings = load_data(listings_file)
 orders = load_data(orders_file)
+
+#Session state set up
 
 # CHANGED: Removed session_state users because users now come from JSON
 
@@ -63,6 +66,8 @@ if "current_user" not in st.session_state:
 if "current_role" not in st.session_state:
     st.session_state.current_role = ""
 
+
+#Registration and Login
 
 tab1, tab2 = st.tabs([
     "Register",
@@ -126,6 +131,8 @@ with tab2:
             st.error("Invalid Login")
 
 
+#Logged in Area
+
 if st.session_state.logged_in == True:
     st.write("Logged In User")
     st.write(st.session_state.current_user)
@@ -138,7 +145,7 @@ if st.session_state.logged_in == True:
         st.session_state.current_role = ""
         st.success("Logged Out")
 
-
+# Seller dashboard 
     if st.session_state.current_role == "Seller":
         seller_tab1, seller_tab2, seller_tab3, seller_tab4 = st.tabs([
             "Create Listing",
@@ -241,7 +248,7 @@ if st.session_state.logged_in == True:
 
                     st.success("Listing Deleted")
 
-
+#Buyer dashboard 
     if st.session_state.current_role == "Buyer":
         buyer_tab1, buyer_tab2, buyer_tab3 = st.tabs([
             "Buy Listing",
