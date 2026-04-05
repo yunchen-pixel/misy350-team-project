@@ -1,3 +1,4 @@
+
 import streamlit as st
 import json
 from pathlib import Path
@@ -9,25 +10,49 @@ st.set_page_config(
 
 st.title("Broke But Up")
 
-json_file = Path("listings.json")
 
-if json_file.exists():
-    with open(json_file, "r") as f:
-        listings = json.load(f)
-else:
-    listings = []
+# CHANGED: Added separate JSON files for users, listings, and orders
 
-if "users" not in st.session_state:
-    st.session_state.users = []
+users_file = Path("users.json")
+listings_file = Path("listings.json")
+orders_file = Path("orders.json")
 
-if "orders" not in st.session_state:
-    st.session_state.orders = []
+
+# CHANGED: Helper function to load JSON data
+def load_data(file_path):
+    if file_path.exists():
+        with open(file_path, "r") as f:
+            return json.load(f)
+    return []
+
+
+# CHANGED: Helper function to save JSON data
+def save_data(file_path, data):
+    with open(file_path, "w") as f:
+        json.dump(data, f, indent=4)
+
+
+# CHANGED: Load users, listings, and orders from separate JSON files
+users = load_data(users_file)
+listings = load_data(listings_file)
+orders = load_data(orders_file)
+
+# CHANGED: Removed session_state users because users now come from JSON
+
+# CHANGED: Removed session_state orders because orders now come from JSON
 
 if "next_order_id" not in st.session_state:
-    st.session_state.next_order_id = 1
+    # CHANGED: next_order_id now continues from saved orders.json
+    if len(orders) > 0:
+        st.session_state.next_order_id = max(order["order_id"] for order in orders) + 1
+    else:
+        st.session_state.next_order_id = 1
 
 if "next_listing_id" not in st.session_state:
-    st.session_state.next_listing_id = 1
+    if len(listings) > 0:
+        st.session_state.next_listing_id = max(listing["listing_id"] for listing in listings) + 1
+    else:
+        st.session_state.next_listing_id = 1
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -37,6 +62,7 @@ if "current_user" not in st.session_state:
 
 if "current_role" not in st.session_state:
     st.session_state.current_role = ""
+
 
 tab1, tab2 = st.tabs([
     "Register",
@@ -53,7 +79,8 @@ with tab1:
     if st.button("Register"):
         user_found = False
 
-        for user in st.session_state.users:
+        # CHANGED: Check users from users.json instead of session_state
+        for user in users:
             if user["username"] == register_username:
                 user_found = True
 
@@ -69,7 +96,10 @@ with tab1:
                     "role": register_role
                 }
 
-                st.session_state.users.append(new_user)
+                # CHANGED: Save new users to users.json
+                users.append(new_user)
+                save_data(users_file, users)
+
                 st.success("Account Created")
 
 with tab2:
@@ -81,7 +111,8 @@ with tab2:
     if st.button("Login"):
         valid_login = False
 
-        for user in st.session_state.users:
+        # CHANGED: Check login using users from users.json
+        for user in users:
             if user["username"] == login_username:
                 if user["password"] == login_password:
                     valid_login = True
@@ -94,6 +125,7 @@ with tab2:
         else:
             st.error("Invalid Login")
 
+
 if st.session_state.logged_in == True:
     st.write("Logged In User")
     st.write(st.session_state.current_user)
@@ -105,6 +137,7 @@ if st.session_state.logged_in == True:
         st.session_state.current_user = ""
         st.session_state.current_role = ""
         st.success("Logged Out")
+
 
     if st.session_state.current_role == "Seller":
         seller_tab1, seller_tab2, seller_tab3, seller_tab4 = st.tabs([
@@ -135,8 +168,8 @@ if st.session_state.logged_in == True:
                 listings.append(new_listing)
                 st.session_state.next_listing_id = st.session_state.next_listing_id + 1
 
-                with open(json_file, "w") as f:
-                    json.dump(listings, f, indent=4)
+                # CHANGED: Save listings to listings.json
+                save_data(listings_file, listings)
 
                 st.success("Listing Created")
 
@@ -173,8 +206,8 @@ if st.session_state.logged_in == True:
                                 listing["price"] = new_price
                                 listing["stock"] = new_stock
 
-                    with open(json_file, "w") as f:
-                        json.dump(listings, f, indent=4)
+                    # CHANGED: Save updated listings to listings.json
+                    save_data(listings_file, listings)
 
                     st.success("Listing Updated")
 
@@ -203,10 +236,11 @@ if st.session_state.logged_in == True:
 
                     listings = updated_listings
 
-                    with open(json_file, "w") as f:
-                        json.dump(listings, f, indent=4)
+                    # CHANGED: Save deleted listings to listings.json
+                    save_data(listings_file, listings)
 
                     st.success("Listing Deleted")
+
 
     if st.session_state.current_role == "Buyer":
         buyer_tab1, buyer_tab2, buyer_tab3 = st.tabs([
@@ -251,11 +285,13 @@ if st.session_state.logged_in == True:
                                 "status": "Placed"
                             }
 
-                            st.session_state.orders.append(order)
+                            # CHANGED: Save orders to orders.json instead of session_state
+                            orders.append(order)
                             st.session_state.next_order_id = st.session_state.next_order_id + 1
 
-                            with open(json_file, "w") as f:
-                                json.dump(listings, f, indent=4)
+                            # CHANGED: Save both listings and orders after purchase
+                            save_data(listings_file, listings)
+                            save_data(orders_file, orders)
 
                             st.success("Order Placed")
 
@@ -308,14 +344,16 @@ if st.session_state.logged_in == True:
 
             st.write("Orders")
 
-            for order in st.session_state.orders:
+            # CHANGED: Read orders from orders.json instead of session_state
+            for order in orders:
                 if order["buyer"] == st.session_state.current_user:
                     st.write(order)
 
             cancel_order_id = st.number_input("Order ID to Cancel", min_value=1, step=1)
 
             if st.button("Cancel Order"):
-                for order in st.session_state.orders:
+                # CHANGED: Update orders from orders.json instead of session_state
+                for order in orders:
                     if order["order_id"] == cancel_order_id:
                         if order["buyer"] == st.session_state.current_user:
                             if order["status"] == "Placed":
@@ -325,7 +363,8 @@ if st.session_state.logged_in == True:
                                     if listing["name"] == order["item"]:
                                         listing["stock"] = listing["stock"] + order["quantity"]
 
-                                with open(json_file, "w") as f:
-                                    json.dump(listings, f, indent=4)
+                                # CHANGED: Save updated listings and orders after cancellation
+                                save_data(listings_file, listings)
+                                save_data(orders_file, orders)
 
                                 st.success("Order Cancelled")
