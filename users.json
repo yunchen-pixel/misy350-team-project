@@ -1,5 +1,6 @@
 [
     {
+<<<<<<< HEAD
         "username": "maheshaq",
         "password": "Alice",
         "role": "Buyer"
@@ -8,5 +9,10 @@
         "username": "maheshaq1",
         "password": "Alice",
         "role": "Seller"
+=======
+        "username": "aishafarooq",
+        "password": "cake66",
+        "role": "Buyer"
+>>>>>>> 58b2341 (delete order button added)
     }
 ]

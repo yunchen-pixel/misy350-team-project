@@ -375,3 +375,27 @@ if st.session_state.logged_in == True:
                                 save_data(orders_file, orders)
 
                                 st.success("Order Cancelled")
+                st.subheader("Delete Cancelled Order")
+
+            delete_order_id = st.number_input("Order ID to Delete", min_value=1, step=1, key="delete_order_id")
+
+            if st.button("Delete Order"):
+                updated_orders = []
+
+                deleted = False
+
+                for order in orders:
+                    if order["order_id"] == delete_order_id:
+                        if order["buyer"] == st.session_state.current_user and order["status"] == "Cancelled":
+                            deleted = True
+                        else:
+                            updated_orders.append(order)
+                    else:
+                        updated_orders.append(order)
+
+                if deleted == True:
+                    orders = updated_orders
+                    save_data(orders_file, orders)
+                    st.success("Cancelled Order Deleted")
+                else:
+                    st.error("You can only delete your own cancelled orders")
