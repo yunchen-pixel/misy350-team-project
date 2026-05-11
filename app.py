@@ -6,10 +6,11 @@ from pathlib import Path
 
 st.set_page_config(
     page_title="Broke But Up",
-    layout="centered"
+    layout="wide"
 )
 
 st.title("Broke But Up")
+st.markdown("**Broke But Up** is a student marketplace for party and beauty items. Register, login, and manage listings and orders in one place.")
 
 #JSON files and helper functions
 # CHANGED: Added separate JSON files for users, listings, and orders
@@ -31,6 +32,32 @@ def load_data(file_path):
 def save_data(file_path, data):
     with open(file_path, "w") as f:
         json.dump(data, f, indent=4)
+
+
+def show_listing(listing):
+    # ADDED: Display listing in a cleaner format
+    with st.container():
+        st.markdown(f"**{listing['name']}**")
+        cols = st.columns([2, 1, 1, 1])
+        cols[0].write(f"Type: {listing['type']}")
+        cols[1].write(f"Price: ${listing['price']}")
+        cols[2].write(f"Stock: {listing['stock']}")
+        cols[3].write(f"Seller: {listing['seller']}")
+        if listing["stock"] < 3:
+            st.warning("Low stock")
+        st.divider()
+
+
+def show_order(order):
+    # ADDED: Display order in a cleaner format
+    with st.container():
+        st.markdown(f"**Order #{order['order_id']}**")
+        cols = st.columns([2, 1, 1, 1])
+        cols[0].write(f"Item: {order['item']}")
+        cols[1].write(f"Qty: {order['quantity']}")
+        cols[2].write(f"Total: ${order['total']}")
+        cols[3].write(f"Status: {order['status']}")
+        st.divider()
 
 
 # CHANGED: Load users, listings, and orders from separate JSON files
@@ -66,6 +93,26 @@ if "current_user" not in st.session_state:
 if "current_role" not in st.session_state:
     st.session_state.current_role = ""
 
+# ADDED: Sidebar with user info and test accounts
+st.sidebar.header("Broke But Up")
+if st.session_state.logged_in:
+    st.sidebar.write("**User:**")
+    st.sidebar.write(st.session_state.current_user)
+    st.sidebar.write("**Role:**")
+    st.sidebar.write(st.session_state.current_role)
+    if st.sidebar.button("Logout"):
+        st.session_state.logged_in = False
+        st.session_state.current_user = ""
+        st.session_state.current_role = ""
+        st.experimental_rerun()
+else:
+    st.sidebar.info("Use the login form to continue.")
+
+st.sidebar.divider()
+st.sidebar.subheader("Test Accounts")
+st.sidebar.write("Buyer: buyer1 / buyer123")
+st.sidebar.write("Seller: seller1 / seller123")
+
 
 #Registration and Login
 
@@ -76,6 +123,7 @@ tab1, tab2 = st.tabs([
 
 with tab1:
     st.subheader("Register")
+    st.info("Create a new account and choose Buyer or Seller.")
 
     register_username = st.text_input("Create Username")
     register_password = st.text_input("Create Password")
@@ -109,6 +157,7 @@ with tab1:
 
 with tab2:
     st.subheader("Login")
+    st.info("Enter your account credentials to access the dashboard.")
 
     login_username = st.text_input("Username")
     login_password = st.text_input("Password")
@@ -134,16 +183,19 @@ with tab2:
 #Logged in Area
 
 if st.session_state.logged_in == True:
-    st.write("Logged In User")
-    st.write(st.session_state.current_user)
-    st.write("Role")
-    st.write(st.session_state.current_role)
+    with st.container():
+        st.subheader("Dashboard")
+        cols = st.columns([2, 1])
+        cols[0].write(f"**User:** {st.session_state.current_user}")
+        cols[0].write(f"**Role:** {st.session_state.current_role}")
+        if cols[1].button("Logout"):
+            st.session_state.logged_in = False
+            st.session_state.current_user = ""
+            st.session_state.current_role = ""
+            st.success("Logged Out")
+            st.experimental_rerun()
 
-    if st.button("Logout"):
-        st.session_state.logged_in = False
-        st.session_state.current_user = ""
-        st.session_state.current_role = ""
-        st.success("Logged Out")
+    st.divider()
 
 # Seller dashboard 
     if st.session_state.current_role == "Seller":
@@ -182,13 +234,10 @@ if st.session_state.logged_in == True:
 
         with seller_tab2:
             st.subheader("View My Listings")
-
+            st.info("Your current listings are shown below.")
             for listing in listings:
                 if listing["seller"] == st.session_state.current_user:
-                    if listing["stock"] < 3:
-                        st.warning(listing)
-                    else:
-                        st.write(listing)
+                    show_listing(listing)
 
         with seller_tab3:
             st.subheader("Update Listing")
@@ -320,41 +369,36 @@ if st.session_state.logged_in == True:
 
         with buyer_tab2:
             st.subheader("View Listings")
+            st.info("Search or browse available items.")
 
             search_text = st.text_input("Search Listing Name")
 
             total_items_in_stock = 0
-
             for listing in listings:
                 total_items_in_stock = total_items_in_stock + listing["stock"]
 
-            st.write("Total Items in Stock")
-            st.write(total_items_in_stock)
+            st.write(f"Total Items in Stock: {total_items_in_stock}")
+            st.divider()
 
-            st.write("Listings")
-
+            found = False
             for listing in listings:
-                if search_text == "":
-                    if listing["stock"] < 3:
-                        st.warning(listing)
-                    else:
-                        st.write(listing)
-                else:
-                    if search_text == listing["name"]:
-                        if listing["stock"] < 3:
-                            st.warning(listing)
-                        else:
-                            st.write(listing)
+                if search_text == "" or search_text == listing["name"]:
+                    show_listing(listing)
+                    found = True
+            if not found:
+                st.warning("No Listings Found")
 
         with buyer_tab3:
             st.subheader("Manage Orders")
+            st.info("Review your orders and cancel or delete cancelled orders below.")
 
-            st.write("Orders")
-
-            # CHANGED: Read orders from orders.json instead of session_state
+            order_count = 0
             for order in orders:
                 if order["buyer"] == st.session_state.current_user:
-                    st.write(order)
+                    show_order(order)
+                    order_count = order_count + 1
+            if order_count == 0:
+                st.write("No Orders")
 
             cancel_order_id = st.number_input("Order ID to Cancel", min_value=1, step=1)
 

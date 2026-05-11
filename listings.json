@@ -1,10 +1,26 @@
 [
-    {
-        "listing_id": 1,
-        "seller": "maheshaq",
-        "name": "Selling Banners for Parties ",
-        "type": "Banners",
-        "price": 25,
-        "stock": 1
-    }
+  {
+    "listing_id": 1,
+    "seller": "seller1",
+    "name": "Party Banner Pack",
+    "type": "Banners",
+    "price": 20,
+    "stock": 5
+  },
+  {
+    "listing_id": 2,
+    "seller": "seller1",
+    "name": "Custom Henna Design",
+    "type": "Henna",
+    "price": 15,
+    "stock": 4
+  },
+  {
+    "listing_id": 3,
+    "seller": "seller1",
+    "name": "Nail Art Set",
+    "type": "Nails",
+    "price": 10,
+    "stock": 8
+  }
 ]

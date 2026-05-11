@@ -1,20 +1,5 @@
 [
   {
-    "username": "maheshaq",
-    "password": "Alice",
-    "role": "Buyer"
-  },
-  {
-    "username": "maheshqa1",
-    "password": "Alice",
-    "role": "Seller"
-  },
-  {
-    "username": "aishafarooq",
-    "password": "cake66",
-    "role": "Buyer"
-  },
-  {
     "username": "buyer1",
     "password": "buyer123",
     "role": "Buyer"
