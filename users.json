@@ -13,5 +13,15 @@
     "username": "aishafarooq",
     "password": "cake66",
     "role": "Buyer"
+  },
+  {
+    "username": "buyer1",
+    "password": "buyer123",
+    "role": "Buyer"
+  },
+  {
+    "username": "seller1",
+    "password": "seller123",
+    "role": "Seller"
   }
 ]
