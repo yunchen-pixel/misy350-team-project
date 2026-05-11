@@ -1,10 +1,34 @@
 [
-  {
-    "order_id": 1,
-    "buyer": "buyer1",
-    "item": "Party Banner Pack",
-    "quantity": 2,
-    "total": 40,
-    "status": "Placed"
-  }
+    {
+        "order_id": 1,
+        "buyer": "buyer1",
+        "item": "Party Banner Pack",
+        "quantity": 2,
+        "total": 40,
+        "status": "Placed"
+    },
+    {
+        "order_id": 2,
+        "buyer": "aishafarooq",
+        "item": "Party Banner Pack",
+        "quantity": 1,
+        "total": 20,
+        "status": "Placed"
+    },
+    {
+        "order_id": 3,
+        "buyer": "aishafarooq",
+        "item": "Custom Henna Design",
+        "quantity": 1,
+        "total": 15,
+        "status": "Placed"
+    },
+    {
+        "order_id": 4,
+        "buyer": "aishafarooq",
+        "item": "Party Banner Pack",
+        "quantity": 1,
+        "total": 20,
+        "status": "Placed"
+    }
 ]

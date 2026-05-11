@@ -3,11 +3,70 @@
 import streamlit as st
 import json
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+from openai import OpenAI
+
+load_dotenv()
+api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=api_key)
 
 st.set_page_config(
     page_title="Broke But Up",
     layout="wide"
 )
+
+st.divider()
+st.subheader("AI Assistant")
+
+user_prompt = st.text_input("Ask the AI assistant for help:")
+
+def load_orders():
+    try:
+        with open("orders.json", "r") as file:
+            return json.load(file)
+    except:
+        return []
+
+if st.button("Submit Question"):
+    if user_prompt:
+        orders = load_orders()
+
+        current_user = st.session_state.get("username")  # change this if your app uses a different name
+
+        user_orders = [
+            order for order in orders
+            if order.get("buyer") == current_user 
+            or order.get("username") == current_user
+            or order.get("buyer_username") == current_user
+        ]
+
+        if "how many orders" in user_prompt.lower():
+            st.write(f"You have placed {len(user_orders)} order(s).")
+
+        else:
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "You are an AI assistant for Broke But Up, a student marketplace app. Help users with listings, product descriptions, pricing ideas, buying advice, and order questions."
+                        },
+                        {
+                            "role": "user",
+                            "content": user_prompt
+                        }
+                    ]
+                )
+
+                st.write(response.choices[0].message.content)
+
+            except Exception:
+                st.error("The AI assistant is set up, but there is an OpenAI API key, billing, or quota issue.")
+    else:
+        st.warning("Please enter a question first.")
+
 
 st.title("Broke But Up")
 st.markdown("**Broke But Up** is a student marketplace for party and beauty items. Register, login, and manage listings and orders in one place.")
@@ -443,3 +502,4 @@ if st.session_state.logged_in == True:
                     st.success("Cancelled Order Deleted")
                 else:
                     st.error("You can only delete your own cancelled orders")
+                

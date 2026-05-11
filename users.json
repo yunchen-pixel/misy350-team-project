@@ -1,12 +1,22 @@
 [
-  {
-    "username": "buyer1",
-    "password": "buyer123",
-    "role": "Buyer"
-  },
-  {
-    "username": "seller1",
-    "password": "seller123",
-    "role": "Seller"
-  }
+    {
+        "username": "buyer1",
+        "password": "buyer123",
+        "role": "Buyer"
+    },
+    {
+        "username": "seller1",
+        "password": "seller123",
+        "role": "Seller"
+    },
+    {
+        "username": "aishafarooq",
+        "password": "rainbow123",
+        "role": "Buyer"
+    },
+    {
+        "username": "ammar",
+        "password": "buttons",
+        "role": "Seller"
+    }
 ]
