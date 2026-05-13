@@ -1,13 +1,5 @@
 [
     {
-        "order_id": 1,
-        "buyer": "buyer1",
-        "item": "Party Banner Pack",
-        "quantity": 2,
-        "total": 40,
-        "status": "Placed"
-    },
-    {
         "order_id": 2,
         "buyer": "aishafarooq",
         "item": "Party Banner Pack",
@@ -29,6 +21,62 @@
         "item": "Party Banner Pack",
         "quantity": 1,
         "total": 20,
+        "status": "Placed"
+    },
+    {
+        "order_id": 5,
+        "buyer": "buyer1",
+        "item": "Party Banner Pack",
+        "quantity": 1,
+        "total": 20,
+        "status": "Placed"
+    },
+    {
+        "order_id": 6,
+        "buyer": "buyer1",
+        "item": "Nail Art Set",
+        "quantity": 1,
+        "total": 10,
+        "status": "Placed"
+    },
+    {
+        "order_id": 7,
+        "buyer": "buyer1",
+        "item": "Custom Henna Design",
+        "quantity": 3,
+        "total": 45,
+        "status": "Placed"
+    },
+    {
+        "order_id": 8,
+        "buyer": "buyer",
+        "item": "Party Banner Pack",
+        "quantity": 3,
+        "total": 60,
+        "status": "Placed"
+    },
+    {
+        "order_id": 9,
+        "buyer": "buyer",
+        "item": "Graduation Banners",
+        "quantity": 6,
+        "total": 210,
+        "status": "Placed"
+    },
+    {
+        "order_id": 11,
+        "buyer": "buyer",
+        "item": "Gel Nails",
+        "quantity": 2,
+        "total": 140,
+        "status": "Placed"
+    },
+    {
+        "order_id": 12,
+        "buyer": "buyer",
+        "item": "Beach Henna",
+        "quantity": 3,
+        "total": 30,
         "status": "Placed"
     }
 ]

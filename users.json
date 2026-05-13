@@ -18,5 +18,15 @@
         "username": "ammar",
         "password": "buttons",
         "role": "Seller"
+    },
+    {
+        "username": "buyer",
+        "password": "buyer123",
+        "role": "Buyer"
+    },
+    {
+        "username": "seller",
+        "password": "seller123",
+        "role": "Seller"
     }
 ]

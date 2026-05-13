@@ -1,4 +1,4 @@
-#Imports and Page Config
+# Imports and Page Config
 
 import streamlit as st
 import json
@@ -16,99 +16,57 @@ st.set_page_config(
     layout="wide"
 )
 
-st.divider()
-st.subheader("AI Assistant")
-
-user_prompt = st.text_input("Ask the AI assistant for help:")
-
-def load_orders():
-    try:
-        with open("orders.json", "r") as file:
-            return json.load(file)
-    except:
-        return []
-
-if st.button("Submit Question"):
-    if user_prompt:
-        orders = load_orders()
-
-        current_user = st.session_state.get("username")  # change this if your app uses a different name
-
-        user_orders = [
-            order for order in orders
-            if order.get("buyer") == current_user 
-            or order.get("username") == current_user
-            or order.get("buyer_username") == current_user
-        ]
-
-        if "how many orders" in user_prompt.lower():
-            st.write(f"You have placed {len(user_orders)} order(s).")
-
-        else:
-            try:
-                response = client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": "You are an AI assistant for Broke But Up, a student marketplace app. Help users with listings, product descriptions, pricing ideas, buying advice, and order questions."
-                        },
-                        {
-                            "role": "user",
-                            "content": user_prompt
-                        }
-                    ]
-                )
-
-                st.write(response.choices[0].message.content)
-
-            except Exception:
-                st.error("The AI assistant is set up, but there is an OpenAI API key, billing, or quota issue.")
-    else:
-        st.warning("Please enter a question first.")
-
-
-st.title("Broke But Up")
-st.markdown("**Broke But Up** is a student marketplace for party and beauty items. Register, login, and manage listings and orders in one place.")
-
-#JSON files and helper functions
-# CHANGED: Added separate JSON files for users, listings, and orders
+# JSON files and helper functions
 
 users_file = Path("users.json")
 listings_file = Path("listings.json")
 orders_file = Path("orders.json")
 
 
-# CHANGED: Helper function to load JSON data
 def load_data(file_path):
     if file_path.exists():
-        with open(file_path, "r") as f:
-            return json.load(f)
+        try:
+            with open(file_path, "r") as f:
+                return json.load(f)
+        except:
+            return []
     return []
 
 
-# CHANGED: Helper function to save JSON data
 def save_data(file_path, data):
     with open(file_path, "w") as f:
         json.dump(data, f, indent=4)
 
 
+def get_listing_emoji(listing_type):
+    if listing_type == "Nails":
+        return "💅"
+    elif listing_type == "Henna":
+        return "🌿"
+    elif listing_type == "Banners":
+        return "🎉"
+    else:
+        return "🛍️"
+
+
 def show_listing(listing):
-    # ADDED: Display listing in a cleaner format
+    emoji = get_listing_emoji(listing["type"])
+
     with st.container():
-        st.markdown(f"**{listing['name']}**")
+        st.markdown(f"### {emoji} {listing['name']}")
         cols = st.columns([2, 1, 1, 1])
         cols[0].write(f"Type: {listing['type']}")
         cols[1].write(f"Price: ${listing['price']}")
         cols[2].write(f"Stock: {listing['stock']}")
         cols[3].write(f"Seller: {listing['seller']}")
+
         if listing["stock"] < 3:
             st.warning("Low stock")
+
         st.divider()
 
 
 def show_order(order):
-    # ADDED: Display order in a cleaner format
     with st.container():
         st.markdown(f"**Order #{order['order_id']}**")
         cols = st.columns([2, 1, 1, 1])
@@ -119,19 +77,61 @@ def show_order(order):
         st.divider()
 
 
-# CHANGED: Load users, listings, and orders from separate JSON files
+def show_ai_assistant():
+    st.subheader("AI Assistant")
+    st.write("Ask the AI assistant for help with listings, pricing, orders, or buying advice.")
+
+    user_prompt = st.text_input("Ask the AI assistant for help:")
+
+    if st.button("Submit Question"):
+        if user_prompt:
+            orders = load_data(orders_file)
+
+            current_user = st.session_state.get("current_user")
+
+            user_orders = [
+                order for order in orders
+                if order.get("buyer") == current_user
+                or order.get("username") == current_user
+                or order.get("buyer_username") == current_user
+            ]
+
+            if "how many orders" in user_prompt.lower():
+                st.write(f"You have placed {len(user_orders)} order(s).")
+
+            else:
+                try:
+                    response = client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": "You are an AI assistant for Broke But Up, a student marketplace app. Help users with listings, product descriptions, pricing ideas, buying advice, and order questions."
+                            },
+                            {
+                                "role": "user",
+                                "content": user_prompt
+                            }
+                        ]
+                    )
+
+                    st.write(response.choices[0].message.content)
+
+                except Exception:
+                    st.error("The AI assistant is set up, but there is an OpenAI API key, billing, or quota issue.")
+        else:
+            st.warning("Please enter a question first.")
+
+
+# Load users, listings, and orders
+
 users = load_data(users_file)
 listings = load_data(listings_file)
 orders = load_data(orders_file)
 
-#Session state set up
-
-# CHANGED: Removed session_state users because users now come from JSON
-
-# CHANGED: Removed session_state orders because orders now come from JSON
+# Session state set up
 
 if "next_order_id" not in st.session_state:
-    # CHANGED: next_order_id now continues from saved orders.json
     if len(orders) > 0:
         st.session_state.next_order_id = max(order["order_id"] for order in orders) + 1
     else:
@@ -152,117 +152,173 @@ if "current_user" not in st.session_state:
 if "current_role" not in st.session_state:
     st.session_state.current_role = ""
 
-# ADDED: Sidebar with user info and test accounts
+
+# Sidebar
+
 st.sidebar.header("Broke But Up")
+
 if st.session_state.logged_in:
+    st.sidebar.success("Logged in")
     st.sidebar.write("**User:**")
     st.sidebar.write(st.session_state.current_user)
     st.sidebar.write("**Role:**")
     st.sidebar.write(st.session_state.current_role)
+
     if st.sidebar.button("Logout"):
         st.session_state.logged_in = False
         st.session_state.current_user = ""
         st.session_state.current_role = ""
-        st.experimental_rerun()
+        st.rerun()
 else:
     st.sidebar.info("Use the login form to continue.")
 
 st.sidebar.divider()
 st.sidebar.subheader("Test Accounts")
-st.sidebar.write("Buyer: buyer1 / buyer123")
-st.sidebar.write("Seller: seller1 / seller123")
+st.sidebar.write("Buyer: buyer / buyer123")
+st.sidebar.write("Seller: seller / seller123")
 
 
-#Registration and Login
+# Main title
 
-tab1, tab2 = st.tabs([
-    "Register",
-    "Login"
-])
+st.title("Broke But Up")
+st.markdown("**Broke But Up** is a student marketplace for party and beauty items. Register, login, and manage listings and orders in one place.")
 
-with tab1:
-    st.subheader("Register")
-    st.info("Create a new account and choose Buyer or Seller.")
 
-    register_username = st.text_input("Create Username")
-    register_password = st.text_input("Create Password")
-    register_role = st.selectbox("Select Role", ["Buyer", "Seller"])
+# Register and Login Area
 
-    if st.button("Register"):
-        user_found = False
+if st.session_state.logged_in == False:
 
-        # CHANGED: Check users from users.json instead of session_state
-        for user in users:
-            if user["username"] == register_username:
-                user_found = True
+    tab1, tab2 = st.tabs([
+        "Register",
+        "Login"
+    ])
 
-        if register_username == "" or register_password == "":
-            st.error("Please fill in all fields")
-        else:
-            if user_found == True:
-                st.error("Username Already Exists")
+    with tab1:
+        st.subheader("Register")
+        st.info("Create a new account and choose Buyer or Seller.")
+
+        register_username = st.text_input("Create Username")
+        register_password = st.text_input("Create Password", type="password")
+        register_role = st.selectbox("Select Role", ["Buyer", "Seller"])
+
+        if st.button("Register"):
+            user_found = False
+
+            for user in users:
+                if user["username"] == register_username:
+                    user_found = True
+
+            if register_username == "" or register_password == "":
+                st.error("Please fill in all fields")
             else:
-                new_user = {
-                    "username": register_username,
-                    "password": register_password,
-                    "role": register_role
-                }
+                if user_found == True:
+                    st.error("Username Already Exists")
+                else:
+                    new_user = {
+                        "username": register_username,
+                        "password": register_password,
+                        "role": register_role
+                    }
 
-                # CHANGED: Save new users to users.json
-                users.append(new_user)
-                save_data(users_file, users)
+                    users.append(new_user)
+                    save_data(users_file, users)
 
-                st.success("Account Created")
+                    st.success("Account Created")
 
-with tab2:
-    st.subheader("Login")
-    st.info("Enter your account credentials to access the dashboard.")
+    with tab2:
+        st.subheader("Login")
+        st.info("Enter your account credentials to access the dashboard.")
 
-    login_username = st.text_input("Username")
-    login_password = st.text_input("Password")
+        login_username = st.text_input("Username")
+        login_password = st.text_input("Password", type="password")
 
-    if st.button("Login"):
-        valid_login = False
+        if st.button("Login"):
+            valid_login = False
 
-        # CHANGED: Check login using users from users.json
-        for user in users:
-            if user["username"] == login_username:
-                if user["password"] == login_password:
-                    valid_login = True
-                    st.session_state.logged_in = True
-                    st.session_state.current_user = user["username"]
-                    st.session_state.current_role = user["role"]
+            for user in users:
+                if user["username"] == login_username:
+                    if user["password"] == login_password:
+                        valid_login = True
+                        st.session_state.logged_in = True
+                        st.session_state.current_user = user["username"]
+                        st.session_state.current_role = user["role"]
 
-        if valid_login == True:
-            st.success("Login Successful")
-        else:
-            st.error("Invalid Login")
+            if valid_login == True:
+                st.success("Login Successful")
+                st.rerun()
+            else:
+                st.error("Invalid Login")
 
 
-#Logged in Area
+# Logged in Area
 
 if st.session_state.logged_in == True:
+
+    st.divider()
+
     with st.container():
         st.subheader("Dashboard")
+
         cols = st.columns([2, 1])
+
         cols[0].write(f"**User:** {st.session_state.current_user}")
         cols[0].write(f"**Role:** {st.session_state.current_role}")
+
         if cols[1].button("Logout"):
             st.session_state.logged_in = False
             st.session_state.current_user = ""
             st.session_state.current_role = ""
             st.success("Logged Out")
-            st.experimental_rerun()
+            st.rerun()
 
     st.divider()
 
-# Seller dashboard 
     if st.session_state.current_role == "Seller":
-        seller_tab1, seller_tab2, seller_tab3, seller_tab4 = st.tabs([
+        my_listings = [
+            listing for listing in listings
+            if listing["seller"] == st.session_state.current_user
+        ]
+
+        my_orders = []
+
+        for order in orders:
+            for listing in my_listings:
+                if order["item"] == listing["name"]:
+                    my_orders.append(order)
+
+        total_listings = len(my_listings)
+        total_orders = len(my_orders)
+        total_stock = sum(listing["stock"] for listing in my_listings)
+
+    elif st.session_state.current_role == "Buyer":
+        my_orders = [
+            order for order in orders
+            if order["buyer"] == st.session_state.current_user
+        ]
+
+        total_listings = len(listings)
+        total_orders = len(my_orders)
+        total_stock = sum(listing["stock"] for listing in listings)
+
+    metric1, metric2, metric3 = st.columns(3)
+    metric1.metric("My Listings" if st.session_state.current_role == "Seller" else "Available Listings", total_listings)
+    metric2.metric("My Sales" if st.session_state.current_role == "Seller" else "My Orders", total_orders)
+    metric3.metric("My Stock" if st.session_state.current_role == "Seller" else "Items in Stock", total_stock)
+
+    st.divider()
+
+
+# Seller Dashboard
+
+    if st.session_state.current_role == "Seller":
+
+        seller_tab1, seller_tab2, seller_tab3, seller_tab4, seller_tab5, seller_tab6 = st.tabs([
             "Create Listing",
             "View My Listings",
             "Update Listing",
-            "Delete Listing"
+            "Delete Listing",
+            "Sales Summary",
+            "AI Assistant"
         ])
 
         with seller_tab1:
@@ -274,29 +330,38 @@ if st.session_state.logged_in == True:
             listing_stock = st.number_input("Stock", min_value=1, step=1)
 
             if st.button("Create Listing"):
-                new_listing = {
-                    "listing_id": st.session_state.next_listing_id,
-                    "seller": st.session_state.current_user,
-                    "name": listing_name,
-                    "type": listing_type,
-                    "price": listing_price,
-                    "stock": listing_stock
-                }
+                if listing_name == "":
+                    st.error("Please enter a listing name")
+                else:
+                    new_listing = {
+                        "listing_id": st.session_state.next_listing_id,
+                        "seller": st.session_state.current_user,
+                        "name": listing_name,
+                        "type": listing_type,
+                        "price": listing_price,
+                        "stock": listing_stock
+                    }
 
-                listings.append(new_listing)
-                st.session_state.next_listing_id = st.session_state.next_listing_id + 1
+                    listings.append(new_listing)
+                    st.session_state.next_listing_id = st.session_state.next_listing_id + 1
 
-                # CHANGED: Save listings to listings.json
-                save_data(listings_file, listings)
+                    save_data(listings_file, listings)
 
-                st.success("Listing Created")
+                    st.success("Listing Created")
 
         with seller_tab2:
             st.subheader("View My Listings")
             st.info("Your current listings are shown below.")
+
+            listing_count = 0
+
             for listing in listings:
                 if listing["seller"] == st.session_state.current_user:
                     show_listing(listing)
+                    listing_count = listing_count + 1
+
+            if listing_count == 0:
+                st.write("No Listings")
 
         with seller_tab3:
             st.subheader("Update Listing")
@@ -321,7 +386,6 @@ if st.session_state.logged_in == True:
                                 listing["price"] = new_price
                                 listing["stock"] = new_stock
 
-                    # CHANGED: Save updated listings to listings.json
                     save_data(listings_file, listings)
 
                     st.success("Listing Updated")
@@ -351,17 +415,50 @@ if st.session_state.logged_in == True:
 
                     listings = updated_listings
 
-                    # CHANGED: Save deleted listings to listings.json
                     save_data(listings_file, listings)
 
                     st.success("Listing Deleted")
 
-#Buyer dashboard 
+        with seller_tab5:
+            st.subheader("Sales Summary")
+            st.info("View sales connected to your listings.")
+
+            seller_sales = []
+
+            for order in orders:
+                for listing in listings:
+                    if order["item"] == listing["name"]:
+                        if listing["seller"] == st.session_state.current_user:
+                            seller_sales.append(order)
+
+            seller_revenue = sum(order["total"] for order in seller_sales)
+            seller_orders = len(seller_sales)
+
+            col1, col2 = st.columns(2)
+            col1.metric("Seller Revenue", f"${seller_revenue}")
+            col2.metric("Orders Sold", seller_orders)
+
+            st.divider()
+
+            if seller_orders == 0:
+                st.write("No sales yet.")
+            else:
+                for order in seller_sales:
+                    show_order(order)
+
+        with seller_tab6:
+            show_ai_assistant()
+
+
+# Buyer Dashboard
+
     if st.session_state.current_role == "Buyer":
-        buyer_tab1, buyer_tab2, buyer_tab3 = st.tabs([
+
+        buyer_tab1, buyer_tab2, buyer_tab3, buyer_tab4 = st.tabs([
             "Buy Listing",
             "View Listings",
-            "Manage Orders"
+            "Manage Orders",
+            "AI Assistant"
         ])
 
         with buyer_tab1:
@@ -370,7 +467,8 @@ if st.session_state.logged_in == True:
             item_names = []
 
             for listing in listings:
-                item_names.append(listing["name"])
+                if listing["stock"] > 0:
+                    item_names.append(listing["name"])
 
             if item_names == []:
                 st.write("No Listings Available")
@@ -400,11 +498,9 @@ if st.session_state.logged_in == True:
                                 "status": "Placed"
                             }
 
-                            # CHANGED: Save orders to orders.json instead of session_state
                             orders.append(order)
                             st.session_state.next_order_id = st.session_state.next_order_id + 1
 
-                            # CHANGED: Save both listings and orders after purchase
                             save_data(listings_file, listings)
                             save_data(orders_file, orders)
 
@@ -433,6 +529,7 @@ if st.session_state.logged_in == True:
             search_text = st.text_input("Search Listing Name")
 
             total_items_in_stock = 0
+
             for listing in listings:
                 total_items_in_stock = total_items_in_stock + listing["stock"]
 
@@ -440,10 +537,12 @@ if st.session_state.logged_in == True:
             st.divider()
 
             found = False
+
             for listing in listings:
-                if search_text == "" or search_text == listing["name"]:
+                if search_text == "" or search_text.lower() in listing["name"].lower():
                     show_listing(listing)
                     found = True
+
             if not found:
                 st.warning("No Listings Found")
 
@@ -452,33 +551,40 @@ if st.session_state.logged_in == True:
             st.info("Review your orders and cancel or delete cancelled orders below.")
 
             order_count = 0
+
             for order in orders:
                 if order["buyer"] == st.session_state.current_user:
                     show_order(order)
                     order_count = order_count + 1
+
             if order_count == 0:
                 st.write("No Orders")
 
             cancel_order_id = st.number_input("Order ID to Cancel", min_value=1, step=1)
 
             if st.button("Cancel Order"):
-                # CHANGED: Update orders from orders.json instead of session_state
+                order_cancelled = False
+
                 for order in orders:
                     if order["order_id"] == cancel_order_id:
                         if order["buyer"] == st.session_state.current_user:
                             if order["status"] == "Placed":
                                 order["status"] = "Cancelled"
+                                order_cancelled = True
 
                                 for listing in listings:
                                     if listing["name"] == order["item"]:
                                         listing["stock"] = listing["stock"] + order["quantity"]
 
-                                # CHANGED: Save updated listings and orders after cancellation
                                 save_data(listings_file, listings)
                                 save_data(orders_file, orders)
 
-                                st.success("Order Cancelled")
-                st.subheader("Delete Cancelled Order")
+                if order_cancelled == True:
+                    st.success("Order Cancelled")
+                else:
+                    st.error("Order could not be cancelled")
+
+            st.subheader("Delete Cancelled Order")
 
             delete_order_id = st.number_input("Order ID to Delete", min_value=1, step=1, key="delete_order_id")
 
@@ -502,4 +608,6 @@ if st.session_state.logged_in == True:
                     st.success("Cancelled Order Deleted")
                 else:
                     st.error("You can only delete your own cancelled orders")
-                
+
+        with buyer_tab4:
+            show_ai_assistant()

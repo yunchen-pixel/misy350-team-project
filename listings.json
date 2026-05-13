@@ -5,7 +5,7 @@
         "name": "Party Banner Pack",
         "type": "Banners",
         "price": 20,
-        "stock": 3
+        "stock": 1
     },
     {
         "listing_id": 2,
@@ -13,7 +13,7 @@
         "name": "Custom Henna Design",
         "type": "Henna",
         "price": 15,
-        "stock": 3
+        "stock": 0
     },
     {
         "listing_id": 3,
@@ -21,7 +21,7 @@
         "name": "Nail Art Set",
         "type": "Nails",
         "price": 10,
-        "stock": 8
+        "stock": 7
     },
     {
         "listing_id": 4,
@@ -30,5 +30,29 @@
         "type": "Nails",
         "price": 500,
         "stock": 1
+    },
+    {
+        "listing_id": 5,
+        "seller": "seller",
+        "name": "Graduation Banners",
+        "type": "Banners",
+        "price": 35,
+        "stock": 8
+    },
+    {
+        "listing_id": 6,
+        "seller": "seller",
+        "name": "Beach Henna",
+        "type": "Henna",
+        "price": 10,
+        "stock": 19
+    },
+    {
+        "listing_id": 7,
+        "seller": "seller",
+        "name": "Gel Nails",
+        "type": "Nails",
+        "price": 70,
+        "stock": 27
     }
 ]
